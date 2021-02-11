@@ -61,7 +61,7 @@ public class ReceiveMock {
     public void init() {
         MockitoAnnotations.initMocks(this);
         PowerMockito.mockStatic(EntityFactory.class);
-        client = new WebhookClientBuilder(1234).setWait(true).setHttpClient(httpClient).build();
+        client = new WebhookClientBuilder(1234, "123").setWait(true).setHttpClient(httpClient).build();
     }
 
     @After
@@ -108,7 +108,7 @@ public class ReceiveMock {
         when(httpClient.newCall(any())).thenAnswer(invoc -> IOTestUtil.forgeCall(invoc.getArgument(0), json, useGzip));
         ReadonlyMessage msg = new ReadonlyMessage(1, 2, false, false,
                 new ReadonlyUser(3, (short)4, false, "wh", null),
-                "content", Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
+                "content", null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList()
         );
         when(EntityFactory.makeMessage(jsonCaptor.capture())).thenReturn(msg);
         return msg;

@@ -430,28 +430,7 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
     /**
      * Sends a message to all registered clients.
      *
-     * @param  first
-     *         The first embed to send
-     * @param  embeds
-     *         Optional additional embeds to send, up to 10
-     *
-     * @throws java.lang.NullPointerException
-     *         If provided with null
-     *
-     * @return List of futures for each client execution
-     */
-    @NotNull
-    public List<CompletableFuture<ReadonlyMessage>> broadcast(@NotNull WebhookEmbed first, @NotNull WebhookEmbed... embeds) {
-        List<WebhookEmbed> list = new ArrayList<>(embeds.length + 2);
-        list.add(first);
-        Collections.addAll(list, embeds);
-        return broadcast(list);
-    }
-
-    /**
-     * Sends a message to all registered clients.
-     *
-     * @param  embeds
+     * @param  embed
      *         The embeds to send, up to 10
      *
      * @throws java.lang.NullPointerException
@@ -460,9 +439,9 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
      * @return List of futures for each client execution
      */
     @NotNull
-    public List<CompletableFuture<ReadonlyMessage>> broadcast(@NotNull Collection<WebhookEmbed> embeds) {
+    public List<CompletableFuture<ReadonlyMessage>> broadcast(@NotNull WebhookEmbed embed) {
         return webhooks.stream()
-                .map(w -> w.send(embeds))
+                .map(w -> w.send(embed))
                 .collect(Collectors.toList());
     }
 

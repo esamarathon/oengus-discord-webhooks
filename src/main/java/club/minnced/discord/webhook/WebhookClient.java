@@ -292,8 +292,6 @@ public class WebhookClient implements AutoCloseable {
      *
      * @param  first
      *         The first embed to send
-     * @param  embeds
-     *         Optional additional embeds to send, up to 10
      *
      * @return {@link java.util.concurrent.CompletableFuture}
      *
@@ -301,26 +299,8 @@ public class WebhookClient implements AutoCloseable {
      * @see    #send(club.minnced.discord.webhook.send.WebhookMessage)
      */
     @NotNull
-    public CompletableFuture<ReadonlyMessage> send(@NotNull WebhookEmbed first, @NotNull WebhookEmbed... embeds) {
-        return send(WebhookMessage.embeds(first, embeds));
-    }
-
-    /**
-     * Sends the provided {@link club.minnced.discord.webhook.send.WebhookEmbed} to the webhook.
-     * <br>The returned future receives {@code null} if {@link club.minnced.discord.webhook.WebhookClientBuilder#setWait(boolean)}
-     * was set to false.
-     *
-     * @param  embeds
-     *         The embeds to send
-     *
-     * @return {@link java.util.concurrent.CompletableFuture}
-     *
-     * @see    #isWait()
-     * @see    #send(club.minnced.discord.webhook.send.WebhookMessage)
-     */
-    @NotNull
-    public CompletableFuture<ReadonlyMessage> send(@NotNull Collection<WebhookEmbed> embeds) {
-        return send(WebhookMessage.embeds(embeds));
+    public CompletableFuture<ReadonlyMessage> send(@NotNull WebhookEmbed first) {
+        return send(WebhookMessage.embeds(first));
     }
 
     /**
@@ -379,8 +359,6 @@ public class WebhookClient implements AutoCloseable {
      *         The target message id
      * @param  first
      *         The first embed to send
-     * @param  embeds
-     *         Optional additional embeds to send, up to 10
      *
      * @return {@link java.util.concurrent.CompletableFuture}
      *
@@ -388,28 +366,8 @@ public class WebhookClient implements AutoCloseable {
      * @see    #edit(long, club.minnced.discord.webhook.send.WebhookMessage)
      */
     @NotNull
-    public CompletableFuture<ReadonlyMessage> edit(long messageId, @NotNull WebhookEmbed first, @NotNull WebhookEmbed... embeds) {
-        return edit(messageId, WebhookMessage.embeds(first, embeds));
-    }
-
-    /**
-     * Edits the target message and updates it with the provided {@link club.minnced.discord.webhook.send.WebhookEmbed} to the webhook.
-     * <br>The returned future receives {@code null} if {@link club.minnced.discord.webhook.WebhookClientBuilder#setWait(boolean)}
-     * was set to false.
-     *
-     * @param  messageId
-     *         The target message id
-     * @param  embeds
-     *         The embeds to send
-     *
-     * @return {@link java.util.concurrent.CompletableFuture}
-     *
-     * @see    #isWait()
-     * @see    #edit(long, club.minnced.discord.webhook.send.WebhookMessage)
-     */
-    @NotNull
-    public CompletableFuture<ReadonlyMessage> edit(long messageId, @NotNull Collection<WebhookEmbed> embeds) {
-        return edit(messageId, WebhookMessage.embeds(embeds));
+    public CompletableFuture<ReadonlyMessage> edit(long messageId, @NotNull WebhookEmbed first) {
+        return edit(messageId, WebhookMessage.embeds(first));
     }
 
     /**

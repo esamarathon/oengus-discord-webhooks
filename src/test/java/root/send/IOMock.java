@@ -49,7 +49,7 @@ public class IOMock {
     public void init() {
         MockitoAnnotations.initMocks(this);
         when(httpClient.newCall(any())).thenReturn(null);   //will make WebhookClient code throw NPE internally, which we don't care about
-        client = new WebhookClientBuilder(1234).setWait(false).setHttpClient(httpClient).build();
+        client = new WebhookClientBuilder(1234, "1234").setWait(false).setHttpClient(httpClient).build();
     }
 
     @After
@@ -75,7 +75,7 @@ public class IOMock {
                 .setUsername("MrWebhook")
                 .setAvatarUrl("linkToImage")
                 .setTTS(true)
-                .addEmbeds(new WebhookEmbedBuilder().setDescription("embed").build())
+                .addEmbed(new WebhookEmbedBuilder().setDescription("embed").build())
                 .build().getBody();
 
         WebhookMessage mock = mock(WebhookMessage.class);

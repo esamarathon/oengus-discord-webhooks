@@ -18,6 +18,7 @@ package club.minnced.discord.webhook.receive;
 
 import club.minnced.discord.webhook.send.WebhookMessage;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 import org.json.JSONString;
 
@@ -38,7 +39,7 @@ public class ReadonlyMessage implements JSONString {
     private final ReadonlyUser author;
 
     private final String content;
-    private final List<ReadonlyEmbed> embeds;
+    private final ReadonlyEmbed embed;
     private final List<ReadonlyAttachment> attachments;
 
     private final List<ReadonlyUser> mentionedUsers;
@@ -47,7 +48,7 @@ public class ReadonlyMessage implements JSONString {
     public ReadonlyMessage(
             long id, long channelId, boolean mentionsEveryone, boolean tts,
             @NotNull ReadonlyUser author, @NotNull String content,
-            @NotNull List<ReadonlyEmbed> embeds, @NotNull List<ReadonlyAttachment> attachments,
+            @Nullable ReadonlyEmbed embed, @NotNull List<ReadonlyAttachment> attachments,
             @NotNull List<ReadonlyUser> mentionedUsers, @NotNull List<Long> mentionedRoles) {
         this.id = id;
         this.channelId = channelId;
@@ -55,7 +56,7 @@ public class ReadonlyMessage implements JSONString {
         this.tts = tts;
         this.author = author;
         this.content = content;
-        this.embeds = embeds;
+        this.embed = embed;
         this.attachments = attachments;
         this.mentionedUsers = mentionedUsers;
         this.mentionedRoles = mentionedRoles;
@@ -123,9 +124,9 @@ public class ReadonlyMessage implements JSONString {
      *
      * @return List of embeds for this message
      */
-    @NotNull
-    public List<ReadonlyEmbed> getEmbeds() {
-        return embeds;
+    @Nullable
+    public ReadonlyEmbed getEmbed() {
+        return embed;
     }
 
     /**
@@ -187,7 +188,7 @@ public class ReadonlyMessage implements JSONString {
     public String toJSONString() {
         JSONObject json = new JSONObject();
         json.put("content", content)
-            .put("embeds", embeds)
+            .put("embed", embed)
             .put("mentions", mentionedUsers)
             .put("mention_roles", mentionedRoles)
             .put("attachments", attachments)

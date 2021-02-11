@@ -251,10 +251,9 @@ public class EntityFactory {
         final boolean mentionEveryone = json.getBoolean("mention_everyone");
         final JSONArray usersArray = json.getJSONArray("mentions");
         final JSONArray rolesArray = json.getJSONArray("mention_roles");
-        final JSONArray embedArray = json.getJSONArray("embeds");
         final JSONArray attachmentArray = json.getJSONArray("attachments");
         final List<ReadonlyUser> mentionedUsers = convertToList(usersArray, EntityFactory::makeUser);
-        final List<ReadonlyEmbed> embeds = convertToList(embedArray, EntityFactory::makeEmbed);
+        final ReadonlyEmbed embed = json.has("embed") ? makeEmbed(json.getJSONObject("embed")) : null;
         final List<ReadonlyAttachment> attachments = convertToList(attachmentArray, EntityFactory::makeAttachment);
         final List<Long> mentionedRoles = new ArrayList<>();
         for (int i = 0; i < rolesArray.length(); i++) {
@@ -263,7 +262,7 @@ public class EntityFactory {
         return new ReadonlyMessage(
                 id, channelId, mentionEveryone, tts,
                 author, content,
-                embeds, attachments,
+                embed, attachments,
                 mentionedUsers, mentionedRoles);
     }
 

@@ -23,15 +23,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Constructs a {@link club.minnced.discord.webhook.send.WebhookMessage}
  */
 public class WebhookMessageBuilder {
     protected final StringBuilder content = new StringBuilder();
-    protected final List<WebhookEmbed> embeds = new LinkedList<>();
+    protected WebhookEmbed embed;
     protected final MessageAttachment[] files = new MessageAttachment[WebhookMessage.MAX_FILES];
     protected AllowedMentions allowedMentions = AllowedMentions.all();
     protected String username, avatarUrl;
@@ -44,7 +42,7 @@ public class WebhookMessageBuilder {
      * @return True, if this builder is empty
      */
     public boolean isEmpty() {
-        return content.length() == 0 && embeds.isEmpty() && getFileAmount() == 0;
+        return content.length() == 0 && embed == null && getFileAmount() == 0;
     }
 
     /**
@@ -93,7 +91,7 @@ public class WebhookMessageBuilder {
      */
     @NotNull
     public WebhookMessageBuilder resetEmbeds() {
-        this.embeds.clear();
+        this.embed = null;
         return this;
     }
 
@@ -119,7 +117,7 @@ public class WebhookMessageBuilder {
     /**
      * Adds the provided embeds to the builder
      *
-     * @param embeds
+     * @param embed
      *         The embeds to add
      *
      * @return This builder for chaining convenience
@@ -130,39 +128,9 @@ public class WebhookMessageBuilder {
      *         If more than {@value WebhookMessage#MAX_EMBEDS} are added
      */
     @NotNull
-    public WebhookMessageBuilder addEmbeds(@NotNull WebhookEmbed... embeds) {
-        Objects.requireNonNull(embeds, "Embeds");
-        if (this.embeds.size() + embeds.length > WebhookMessage.MAX_EMBEDS)
-            throw new IllegalStateException("Cannot add more than 10 embeds to a message");
-        for (WebhookEmbed embed : embeds) {
-            Objects.requireNonNull(embed, "Embed");
-            this.embeds.add(embed);
-        }
-        return this;
-    }
+    public WebhookMessageBuilder addEmbed(@Nullable WebhookEmbed embed) {
+        this.embed = embed;
 
-    /**
-     * Adds the provided embeds to the builder
-     *
-     * @param  embeds
-     *         The embeds to add
-     *
-     * @return This builder for chaining convenience
-     *
-     * @throws java.lang.NullPointerException
-     *         If provided with null
-     * @throws java.lang.IllegalStateException
-     *         If more than {@value WebhookMessage#MAX_EMBEDS} are added
-     */
-    @NotNull
-    public WebhookMessageBuilder addEmbeds(@NotNull Collection<? extends WebhookEmbed> embeds) {
-        Objects.requireNonNull(embeds, "Embeds");
-        if (this.embeds.size() + embeds.size() > WebhookMessage.MAX_EMBEDS)
-            throw new IllegalStateException("Cannot add more than 10 embeds to a message");
-        for (WebhookEmbed embed : embeds) {
-            Objects.requireNonNull(embed, "Embed");
-            this.embeds.add(embed);
-        }
         return this;
     }
 
@@ -375,7 +343,7 @@ public class WebhookMessageBuilder {
     public WebhookMessage build() {
         if (isEmpty())
             throw new IllegalStateException("Cannot build an empty message!");
-        return new WebhookMessage(username, avatarUrl, content.toString(), embeds, isTTS,
+        return new WebhookMessage(username, avatarUrl, content.toString(), embed, isTTS,
                 fileIndex == 0 ? null : Arrays.copyOf(files, fileIndex), allowedMentions);
     }
 }

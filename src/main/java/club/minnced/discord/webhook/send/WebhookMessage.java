@@ -22,7 +22,6 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -44,18 +43,18 @@ public class WebhookMessage {
     public static final int MAX_EMBEDS = 10;
 
     protected final String username, avatarUrl, content;
-    protected final List<WebhookEmbed> embeds;
+    protected final WebhookEmbed embed;
     protected final boolean isTTS;
     protected final MessageAttachment[] attachments;
     protected final AllowedMentions allowedMentions;
 
     protected WebhookMessage(final String username, final String avatarUrl, final String content,
-                             final List<WebhookEmbed> embeds, final boolean isTTS,
+                             final WebhookEmbed embed, final boolean isTTS,
                              final MessageAttachment[] files, AllowedMentions allowedMentions) {
         this.username = username;
         this.avatarUrl = avatarUrl;
         this.content = content;
-        this.embeds = embeds;
+        this.embed = embed;
         this.isTTS = isTTS;
         this.attachments = files;
         this.allowedMentions = allowedMentions;
@@ -96,9 +95,9 @@ public class WebhookMessage {
      *
      * @return The embeds
      */
-    @NotNull
-    public List<WebhookEmbed> getEmbeds() {
-        return embeds == null ? Collections.emptyList() : embeds;
+    @Nullable
+    public WebhookEmbed getEmbed() {
+        return embed;
     }
 
     /**
@@ -141,7 +140,7 @@ public class WebhookMessage {
         builder.setUsername(message.getAuthor().getName());
         builder.setContent(message.getContent());
         builder.setTTS(message.isTTS());
-        builder.addEmbeds(message.getEmbeds());
+        builder.addEmbed(message.getEmbed());
         return builder.build();
     }
 
@@ -149,10 +148,8 @@ public class WebhookMessage {
      * Creates a WebhookMessage from
      * the provided embeds. A message can hold up to {@value #MAX_EMBEDS} embeds.
      *
-     * @param first
-     *         The first embed
-     * @param embeds
-     *         Optional additional embeds for the message
+     * @param embed
+     *         The embed
      *
      * @return A WebhookMessage for the embeds
      *
@@ -162,42 +159,9 @@ public class WebhookMessage {
      *         If more than {@value WebhookMessage#MAX_EMBEDS} are provided
      */
     @NotNull // forcing first embed as we expect at least one entry (Effective Java 3rd. Edition - Item 53)
-    public static WebhookMessage embeds(@NotNull WebhookEmbed first, @NotNull WebhookEmbed... embeds) {
-        Objects.requireNonNull(embeds, "Embeds");
-        if (embeds.length >= WebhookMessage.MAX_EMBEDS)
-            throw new IllegalArgumentException("Cannot add more than 10 embeds to a message");
-        for (WebhookEmbed e : embeds) {
-            Objects.requireNonNull(e);
-        }
-        List<WebhookEmbed> list = new ArrayList<>(1 + embeds.length);
-        list.add(first);
-        Collections.addAll(list, embeds);
-        return new WebhookMessage(null, null, null, list, false, null, AllowedMentions.all());
-    }
-
-    /**
-     * Creates a WebhookMessage from
-     * the provided embeds. A message can hold up to {@value #MAX_EMBEDS} embeds.
-     *
-     * @param  embeds
-     *         Embeds for the message
-     *
-     * @throws java.lang.NullPointerException
-     *         If provided with null
-     * @throws java.lang.IllegalArgumentException
-     *         If more than {@value WebhookMessage#MAX_EMBEDS} are provided
-     *
-     * @return A WebhookMessage for the embeds
-     */
-    @NotNull
-    public static WebhookMessage embeds(@NotNull Collection<WebhookEmbed> embeds) {
-        Objects.requireNonNull(embeds, "Embeds");
-        if (embeds.size() > WebhookMessage.MAX_EMBEDS)
-            throw new IllegalArgumentException("Cannot add more than 10 embeds to a message");
-        if (embeds.isEmpty())
-            throw new IllegalArgumentException("Cannot build an empty message");
-        embeds.forEach(Objects::requireNonNull);
-        return new WebhookMessage(null, null, null, new ArrayList<>(embeds), false, null, AllowedMentions.all());
+    public static WebhookMessage embeds(@NotNull WebhookEmbed embed) {
+        Objects.requireNonNull(embed, "Embed");
+        return new WebhookMessage(null, null, null, embed, false, null, AllowedMentions.all());
     }
 
     /**
@@ -302,15 +266,11 @@ public class WebhookMessage {
     public RequestBody getBody() {
         final JSONObject payload = new JSONObject();
         payload.put("content", content);
-        if (embeds != null && !embeds.isEmpty()) {
-            final JSONArray array = new JSONArray();
-            for (WebhookEmbed embed : embeds) {
-                array.put(embed.reduced());
-            }
-            payload.put("embeds", array);
-        } else {
-            payload.put("embeds", new JSONArray());
+
+        if (embed != null) {
+            payload.put("embed", embed.reduced());
         }
+
         if (avatarUrl != null)
             payload.put("avatar_url", avatarUrl);
         if (username != null)

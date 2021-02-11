@@ -46,7 +46,6 @@ public class ReceiveMessageTest {
                 .put("author", MOCK_MESSAGE_USER_JSON)
                 .put("tts", true)
                 .put("attachments", new JSONArray())
-                .put("embeds", new JSONArray())
                 .put("mention_everyone", true)
                 .put("mentions", new JSONArray())
                 .put("mention_roles", new JSONArray());
@@ -68,7 +67,7 @@ public class ReceiveMessageTest {
         assertEquals("Channel id mismatches", 1234L, message.getChannelId());
         assertTrue("TTS mismatches", message.isTTS());
         assertTrue("Attachments are not empty", message.getAttachments().isEmpty());
-        assertTrue("Embeds are not empty", message.getEmbeds().isEmpty());
+        assertNull("Embeds are not empty", message.getEmbed());
         assertTrue("Does not mention everyone", message.isMentionsEveryone());
         assertTrue("User mentions not empty", message.getMentionedUsers().isEmpty());
         assertTrue("Role mentions not empty", message.getMentionedRoles().isEmpty());
@@ -77,12 +76,12 @@ public class ReceiveMessageTest {
     @Test
     public void parseEmbed() {
         JSONObject json = getMockMessageJson();
-        json.getJSONArray("embeds").put(ReceiveEmbedTest.MOCK_EMBED_JSON);
+        json.put("embed", ReceiveEmbedTest.MOCK_EMBED_JSON);
         ReadonlyMessage message = EntityFactory.makeMessage(json);
-        assertEquals("Embeds are empty", 1, message.getEmbeds().size());
+        assertNotNull("Embed is null", message.getEmbed());
         assertEquals("Embed json incorrect/incomplete",
                 ReceiveEmbedTest.MOCK_EMBED_JSON.toMap(),
-                new JSONObject(message.getEmbeds().get(0).toJSONString()).toMap()
+                new JSONObject(message.getEmbed().toJSONString()).toMap()
         );
     }
 

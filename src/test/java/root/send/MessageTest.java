@@ -60,7 +60,7 @@ public class MessageTest {
         builder.reset();
         Assert.assertTrue("Reset doesn't reset content", builder.isEmpty());
 
-        builder.addEmbeds(new WebhookEmbedBuilder().setDescription("test").build());
+        builder.addEmbed(new WebhookEmbedBuilder().setDescription("test").build());
         Assert.assertFalse("Adding embed doesn't change isEmpty to false", builder.isEmpty());
         builder.reset();
         Assert.assertTrue("Reset doesn't reset embed(s)", builder.isEmpty());
@@ -109,12 +109,9 @@ public class MessageTest {
                         .setDescription("World")
                         .build()
         );
-        builder.addEmbeds(embedList.get(0));
-        builder.addEmbeds(embedList.subList(1, 2));
+        builder.addEmbed(embedList.get(0));
         WebhookMessage message = builder.build();
-        for (int i = 0; i < 2; i++) {
-            Assert.assertEquals(embedList.get(i), message.getEmbeds().get(i));
-        }
+        Assert.assertEquals(embedList.get(0), message.getEmbed());
     }
 
     @Test
@@ -136,10 +133,7 @@ public class MessageTest {
     public void factoryEmbeds() {
         WebhookEmbed embed1 = new WebhookEmbedBuilder()
                 .setDescription("Hello").build();
-        WebhookEmbed embed2 = new WebhookEmbedBuilder()
-                .setDescription("World").build();
-        WebhookMessage.embeds(embed1, embed2).getBody();
-        WebhookMessage.embeds(Arrays.asList(embed1, embed2)).getBody();
+        WebhookMessage.embeds(embed1).getBody();
     }
 
     @Test
@@ -176,7 +170,7 @@ public class MessageTest {
                 .put("username", "MrWebhook")
                 .put("avatar_url", "linkToImage")
                 .put("tts", true)
-                .put("embeds", new JSONArray().put(new JSONObject().put("description", "embed")))
+                .put("embed", new JSONObject().put("description", "embed"))
                 .put("allowed_mentions", allowedMentions)
                 .toMap();
 
@@ -185,7 +179,7 @@ public class MessageTest {
                 .setUsername("MrWebhook")
                 .setAvatarUrl("linkToImage")
                 .setTTS(true)
-                .addEmbeds(new WebhookEmbedBuilder().setDescription("embed").build())
+                .addEmbed(new WebhookEmbedBuilder().setDescription("embed").build())
                 .build();
         Assert.assertFalse("Message should not be of type file", msg.isFile());
         RequestBody body = msg.getBody();
@@ -242,7 +236,6 @@ public class MessageTest {
                 new JSONObject()
                         .put("allowed_mentions", allowedMentions)
                         .put("content", "CONTENT!")
-                        .put("embeds", new JSONArray())
                         .put("tts", false).toMap(),
                 new JSONObject((String) multiPart.get("payload_json")).toMap()
         );
