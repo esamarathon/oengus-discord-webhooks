@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * Collection of webhooks, useful for subscriber pattern.
  * <br>Register several webhooks and broadcast to all of them with a single call.
  *
- * <p>Webhook created by the cluster through {@link #buildWebhook(long)}
+ * <p>Webhook created by the cluster through {@link #buildWebhook(long, String)}
  * are initialized with defaults specified by
  * <ul>
  * <li>{@link #setDefaultHttpClient(okhttp3.OkHttpClient)}</li>
@@ -188,6 +188,8 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
      *
      * @param  id
      *         The id of the webhook
+     * @param  token
+     *         The token of the bot that is sending the message
      *
      * @throws java.lang.NullPointerException
      *         If the token is null
@@ -195,8 +197,8 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
      * @return WebhookCluster instance for chaining convenience
      */
     @NotNull
-    public WebhookCluster buildWebhook(long id) {
-        this.webhooks.add(newBuilder(id).build());
+    public WebhookCluster buildWebhook(long id, String token) {
+        this.webhooks.add(newBuilder(id, token).build());
         return this;
     }
 
@@ -207,6 +209,8 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
      *
      * @param  id
      *         The id of the webhook
+     * @param  token
+     *         The token of the bot that is sending the message
      *
      * @throws java.lang.NullPointerException
      *         If the token is null
@@ -214,8 +218,8 @@ public class WebhookCluster implements AutoCloseable { //TODO: tests
      * @return WebhookClientBuilder instance
      */
     @NotNull
-    public WebhookClientBuilder newBuilder(long id) {
-        WebhookClientBuilder builder = new WebhookClientBuilder(id);
+    public WebhookClientBuilder newBuilder(long id, String token) {
+        WebhookClientBuilder builder = new WebhookClientBuilder(id, token);
         builder.setExecutorService(defaultPool)
                .setHttpClient(defaultHttpClient)
                .setThreadFactory(threadFactory)

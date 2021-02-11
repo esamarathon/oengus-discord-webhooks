@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,7 @@ public class WebhookClient implements AutoCloseable {
 
     protected final String url;
     protected final long id;
+    protected final String token;
     protected final OkHttpClient client;
     protected final ScheduledExecutorService pool;
     protected final Bucket bucket;
@@ -68,10 +70,11 @@ public class WebhookClient implements AutoCloseable {
     protected boolean isShutdown;
 
     protected WebhookClient(
-            final long id, final boolean parseMessage,
+            final long id, final String token, final boolean parseMessage,
             final OkHttpClient client, final ScheduledExecutorService pool, AllowedMentions mentions) {
         this.client = client;
         this.id = id;
+        this.token = token;
         this.parseMessage = parseMessage;
         this.url = String.format(WEBHOOK_URL, Long.toUnsignedString(id));
         this.pool = pool;
@@ -86,15 +89,18 @@ public class WebhookClient implements AutoCloseable {
      *
      * @param  channelId
      *         The webhook id
+     * @param  botToken
+     *         The token of the bot that is sending the message
      *
      * @throws java.lang.NullPointerException
      *         If provided with null
      *
      * @return The WebhookClient for the provided id
      */
-    public static WebhookClient create(long channelId) {
+    public static WebhookClient create(long channelId, @Nonnull String botToken) {
+        Objects.requireNonNull(botToken, "botToken");
         ScheduledExecutorService pool = WebhookClientBuilder.getDefaultPool(channelId, null, false);
-        return new WebhookClient(channelId, true, new OkHttpClient(), pool, AllowedMentions.all());
+        return new WebhookClient(channelId, botToken, true, new OkHttpClient(), pool, AllowedMentions.all());
     }
 
     /**
@@ -108,7 +114,7 @@ public class WebhookClient implements AutoCloseable {
 
     /**
      * The URL for this webhook formatted using {@link #WEBHOOK_URL} unless
-     * specified by {@link club.minnced.discord.webhook.WebhookClientBuilder#WebhookClientBuilder(String)} explicitly
+     * specified by {@link club.minnced.discord.webhook.WebhookClientBuilder#WebhookClientBuilder(long, String)} explicitly
      *
      * @return The URL for this webhook
      */
@@ -502,7 +508,7 @@ public class WebhookClient implements AutoCloseable {
         final boolean wasQueued = isQueued;
         isQueued = true;
         CompletableFuture<ReadonlyMessage> callback = new CompletableFuture<>();
-        Request req = new Request(callback, body, method, url);
+        Request req = new Request(callback, body, method, url, this.token);
         if (defaultTimeout > 0)
             req.deadline = System.currentTimeMillis() + defaultTimeout;
         enqueuePair(req);
@@ -518,6 +524,7 @@ public class WebhookClient implements AutoCloseable {
                 .method(request.method, request.body)
                 .header("accept-encoding", "gzip")
                 .header("user-agent", USER_AGENT)
+                .header("Authorization", "Bot " + request.token)
                 .build();
     }
 
@@ -666,14 +673,15 @@ public class WebhookClient implements AutoCloseable {
     private static final class Request {
         private final CompletableFuture<ReadonlyMessage> future;
         private final RequestBody body;
-        private final String method, url;
+        private final String method, url, token;
         private long deadline;
 
-        public Request(CompletableFuture<ReadonlyMessage> future, RequestBody body, String method, String url) {
+        public Request(CompletableFuture<ReadonlyMessage> future, RequestBody body, String method, String url, String token) {
             this.future = future;
             this.body = body;
             this.method = method;
             this.url = url;
+            this.token = token;
         }
     }
 }

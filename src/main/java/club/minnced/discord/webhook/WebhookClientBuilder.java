@@ -21,26 +21,18 @@ import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Builder for a {@link club.minnced.discord.webhook.WebhookClient} instance.
  *
- * @see club.minnced.discord.webhook.WebhookClient#create(long)
+ * @see club.minnced.discord.webhook.WebhookClient#create(long, String)
  */
 public class WebhookClientBuilder { //TODO: tests
-    /**
-     * Pattern used to validate webhook urls
-     * {@code (?:https?://)?(?:\w+\.)?discord(?:app)?\.com/api(?:/v\d+)?/webhooks/(\d+)/([\w-]+)(?:/(?:\w+)?)?}
-     */
-    public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?discord(?:app)?\\.com/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
-
     protected final long id;
+    protected final String token;
     protected ScheduledExecutorService pool;
     protected OkHttpClient client;
     protected ThreadFactory threadFactory;
@@ -57,30 +49,9 @@ public class WebhookClientBuilder { //TODO: tests
      * @throws java.lang.NullPointerException
      *         If the token is null
      */
-    public WebhookClientBuilder(final long id) {
+    public WebhookClientBuilder(final long id, final String token) {
         this.id = id;
-    }
-
-    /**
-     * Creates a new WebhookClientBuilder for the specified webhook url
-     * <br>The url is verified using {@link #WEBHOOK_PATTERN}.
-     *
-     * @param  url
-     *         The url to use
-     *
-     * @throws java.lang.NullPointerException
-     *         If the url is null
-     * @throws java.lang.IllegalArgumentException
-     *         If the url is not valid
-     */
-    public WebhookClientBuilder(@NotNull String url) {
-        Objects.requireNonNull(url, "Url");
-        Matcher matcher = WEBHOOK_PATTERN.matcher(url);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Failed to parse webhook URL");
-        }
-
-        this.id = Long.parseUnsignedLong(matcher.group(1));
+        this.token = token;
     }
 
     /**
@@ -188,7 +159,7 @@ public class WebhookClientBuilder { //TODO: tests
     public WebhookClient build() {
         OkHttpClient client = this.client == null ? new OkHttpClient() : this.client;
         ScheduledExecutorService pool = this.pool != null ? this.pool : getDefaultPool(id, threadFactory, isDaemon);
-        return new WebhookClient(id, parseMessage, client, pool, allowedMentions);
+        return new WebhookClient(id, this.token, parseMessage, client, pool, allowedMentions);
     }
 
     protected static ScheduledExecutorService getDefaultPool(long id, ThreadFactory factory, boolean isDaemon) {
