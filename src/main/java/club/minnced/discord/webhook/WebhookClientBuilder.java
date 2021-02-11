@@ -16,9 +16,6 @@
 
 package club.minnced.discord.webhook;
 
-import club.minnced.discord.webhook.external.D4JWebhookClient;
-import club.minnced.discord.webhook.external.JDAWebhookClient;
-import club.minnced.discord.webhook.external.JavacordWebhookClient;
 import club.minnced.discord.webhook.send.AllowedMentions;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +31,7 @@ import java.util.regex.Pattern;
 /**
  * Builder for a {@link club.minnced.discord.webhook.WebhookClient} instance.
  *
- * @see club.minnced.discord.webhook.WebhookClient#withId(long, String)
- * @see club.minnced.discord.webhook.WebhookClient#withUrl(String)
+ * @see club.minnced.discord.webhook.WebhookClient#create(long)
  */
 public class WebhookClientBuilder { //TODO: tests
     /**
@@ -45,7 +41,6 @@ public class WebhookClientBuilder { //TODO: tests
     public static final Pattern WEBHOOK_PATTERN = Pattern.compile("(?:https?://)?(?:\\w+\\.)?discord(?:app)?\\.com/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)(?:/(?:\\w+)?)?");
 
     protected final long id;
-    protected final String token;
     protected ScheduledExecutorService pool;
     protected OkHttpClient client;
     protected ThreadFactory threadFactory;
@@ -58,16 +53,12 @@ public class WebhookClientBuilder { //TODO: tests
      *
      * @param  id
      *         The webhook id
-     * @param  token
-     *         The webhook token
      *
      * @throws java.lang.NullPointerException
      *         If the token is null
      */
-    public WebhookClientBuilder(final long id, @NotNull final String token) {
-        Objects.requireNonNull(token, "Token");
+    public WebhookClientBuilder(final long id) {
         this.id = id;
-        this.token = token;
     }
 
     /**
@@ -90,68 +81,7 @@ public class WebhookClientBuilder { //TODO: tests
         }
 
         this.id = Long.parseUnsignedLong(matcher.group(1));
-        this.token = matcher.group(2);
     }
-
-    /////////////////////////////////
-    /// Third-party compatibility ///
-    /////////////////////////////////
-
-    /**
-     * Creates a WebhookClientBuilder for the provided webhook.
-     *
-     * @param  webhook
-     *         The webhook
-     *
-     * @throws NullPointerException
-     *         If the webhook is null or does not provide a token
-     *
-     * @return The WebhookClientBuilder
-     */
-    @NotNull
-    public static WebhookClientBuilder fromJDA(@NotNull net.dv8tion.jda.api.entities.Webhook webhook) {
-        Objects.requireNonNull(webhook, "Webhook");
-        return new WebhookClientBuilder(webhook.getIdLong(), Objects.requireNonNull(webhook.getToken(), "Webhook Token"));
-    }
-
-    /**
-     * Creates a WebhookClientBuilder for the provided webhook.
-     *
-     * @param  webhook
-     *         The webhook
-     *
-     * @throws NullPointerException
-     *         If the webhook is null or does not provide a token
-     *
-     * @return The WebhookClientBuilder
-     */
-    @NotNull
-    public static WebhookClientBuilder fromD4J(@NotNull discord4j.core.object.entity.Webhook webhook) {
-        Objects.requireNonNull(webhook, "Webhook");
-        String token = webhook.getToken();
-        Objects.requireNonNull(token, "Webhook Token");
-        if (token.isEmpty())
-            throw new NullPointerException("Webhook Token");
-        return new WebhookClientBuilder(webhook.getId().asLong(), token);
-    }
-
-    /**
-     * Creates a WebhookClientBuilder for the provided webhook.
-     *
-     * @param  webhook
-     *         The webhook
-     *
-     * @throws NullPointerException
-     *         If the webhook is null or does not provide a token
-     *
-     * @return The WebhookClientBuilder
-     */
-    @NotNull
-    public static WebhookClientBuilder fromJavacord(@NotNull org.javacord.api.entity.webhook.Webhook webhook) {
-        Objects.requireNonNull(webhook, "Webhook");
-        return new WebhookClientBuilder(webhook.getId(), webhook.getToken().orElseThrow(NullPointerException::new));
-    }
-
 
     /**
      * The {@link java.util.concurrent.ScheduledExecutorService} that is used to execute
@@ -258,46 +188,7 @@ public class WebhookClientBuilder { //TODO: tests
     public WebhookClient build() {
         OkHttpClient client = this.client == null ? new OkHttpClient() : this.client;
         ScheduledExecutorService pool = this.pool != null ? this.pool : getDefaultPool(id, threadFactory, isDaemon);
-        return new WebhookClient(id, token, parseMessage, client, pool, allowedMentions);
-    }
-
-    /**
-     * Builds the {@link club.minnced.discord.webhook.external.JDAWebhookClient}
-     * with the current settings
-     *
-     * @return {@link club.minnced.discord.webhook.external.JDAWebhookClient} instance
-     */
-    @NotNull
-    public JDAWebhookClient buildJDA() {
-        OkHttpClient client = this.client == null ? new OkHttpClient() : this.client;
-        ScheduledExecutorService pool = this.pool != null ? this.pool : getDefaultPool(id, threadFactory, isDaemon);
-        return new JDAWebhookClient(id, token, parseMessage, client, pool, allowedMentions);
-    }
-
-    /**
-     * Builds the {@link club.minnced.discord.webhook.external.D4JWebhookClient}
-     * with the current settings
-     *
-     * @return {@link club.minnced.discord.webhook.external.D4JWebhookClient} instance
-     */
-    @NotNull
-    public D4JWebhookClient buildD4J() {
-        OkHttpClient client = this.client == null ? new OkHttpClient() : this.client;
-        ScheduledExecutorService pool = this.pool != null ? this.pool : getDefaultPool(id, threadFactory, isDaemon);
-        return new D4JWebhookClient(id, token, parseMessage, client, pool, allowedMentions);
-    }
-
-    /**
-     * Builds the {@link club.minnced.discord.webhook.external.JavacordWebhookClient}
-     * with the current settings
-     *
-     * @return {@link club.minnced.discord.webhook.external.JavacordWebhookClient} instance
-     */
-    @NotNull
-    public JavacordWebhookClient buildJavacord() {
-        OkHttpClient client = this.client == null ? new OkHttpClient() : this.client;
-        ScheduledExecutorService pool = this.pool != null ? this.pool : getDefaultPool(id, threadFactory, isDaemon);
-        return new JavacordWebhookClient(id, token, parseMessage, client, pool, allowedMentions);
+        return new WebhookClient(id, parseMessage, client, pool, allowedMentions);
     }
 
     protected static ScheduledExecutorService getDefaultPool(long id, ThreadFactory factory, boolean isDaemon) {

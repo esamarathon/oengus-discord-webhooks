@@ -61,7 +61,7 @@ public class ReceiveMock {
     public void init() {
         MockitoAnnotations.initMocks(this);
         PowerMockito.mockStatic(EntityFactory.class);
-        client = new WebhookClientBuilder(1234, "token").setWait(true).setHttpClient(httpClient).build();
+        client = new WebhookClientBuilder(1234).setWait(true).setHttpClient(httpClient).build();
     }
 
     @After

@@ -1,15 +1,14 @@
-[version]: https://img.shields.io/maven-central/v/club.minnced/discord-webhooks
-[download]: https://mvnrepository.com/artifact/club.minnced/discord-webhooks/latest
 [license]: https://img.shields.io/badge/License-Apache%202.0-lightgrey.svg
 [license-file]: https://github.com/MinnDevelopment/discord-webhooks/blob/master/LICENSE
 
-[ ![version] ][download]
 [ ![license] ][license-file]
 
 # Discord-Webhooks
 
 Originally part of JDA, this library provides easy to use bindings for the
 Discord Webhook API.
+
+Builds are being pulled from jitpack: https://jitpack.io/#esamarathon/oengus-discord-webhooks
 
 # Introduction
 

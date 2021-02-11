@@ -49,7 +49,7 @@ public class IOMock {
     public void init() {
         MockitoAnnotations.initMocks(this);
         when(httpClient.newCall(any())).thenReturn(null);   //will make WebhookClient code throw NPE internally, which we don't care about
-        client = new WebhookClientBuilder(1234, "token").setWait(false).setHttpClient(httpClient).build();
+        client = new WebhookClientBuilder(1234).setWait(false).setHttpClient(httpClient).build();
     }
 
     @After
@@ -64,7 +64,7 @@ public class IOMock {
         verify(httpClient, timeout(1000).only()).newCall(requestCaptor.capture());
         Request req = requestCaptor.getValue();
         Assert.assertEquals("POST", req.method());
-        Assert.assertEquals(String.format("https://discord.com/api/v8/webhooks/%d/%s", 1234, "token"), req.url().toString());
+        Assert.assertEquals(String.format("https://discord.com/api/v8/channels/%d/messages", 1234), req.url().toString());
     }
 
     @Test

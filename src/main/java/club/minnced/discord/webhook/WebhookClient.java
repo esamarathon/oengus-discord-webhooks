@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.regex.Matcher;
 
 /**
  * Client used to execute webhooks. All send methods are async and return a {@link java.util.concurrent.CompletableFuture}
@@ -51,9 +50,9 @@ public class WebhookClient implements AutoCloseable {
     /**
      * Format for webhook execution endpoint
      */
-    public static final String WEBHOOK_URL = "https://discord.com/api/v" + LibraryInfo.DISCORD_API_VERSION + "/webhooks/%s/%s";
+    public static final String WEBHOOK_URL = "https://discord.com/api/v" + LibraryInfo.DISCORD_API_VERSION + "/channels/%s/messages";
     /** User-Agent used for REST requests */
-    public static final String USER_AGENT = "Webhook(https://github.com/MinnDevelopment/discord-webhooks, " + LibraryInfo.VERSION + ")";
+    public static final String USER_AGENT = "Webhook(https://github.com/esamarathon/oengus-discord-webhooks, " + LibraryInfo.VERSION + ")";
     private static final Logger LOG = LoggerFactory.getLogger(WebhookClient.class);
 
     protected final String url;
@@ -69,12 +68,12 @@ public class WebhookClient implements AutoCloseable {
     protected boolean isShutdown;
 
     protected WebhookClient(
-            final long id, final String token, final boolean parseMessage,
+            final long id, final boolean parseMessage,
             final OkHttpClient client, final ScheduledExecutorService pool, AllowedMentions mentions) {
         this.client = client;
         this.id = id;
         this.parseMessage = parseMessage;
-        this.url = String.format(WEBHOOK_URL, Long.toUnsignedString(id), token);
+        this.url = String.format(WEBHOOK_URL, Long.toUnsignedString(id));
         this.pool = pool;
         this.bucket = new Bucket();
         this.queue = new LinkedBlockingQueue<>();
@@ -85,42 +84,17 @@ public class WebhookClient implements AutoCloseable {
     /**
      * Factory method to create a basic WebhookClient with the provided id and token.
      *
-     * @param  id
+     * @param  channelId
      *         The webhook id
-     * @param  token
-     *         The webhook token
      *
      * @throws java.lang.NullPointerException
      *         If provided with null
      *
-     * @return The WebhookClient for the provided id and token
+     * @return The WebhookClient for the provided id
      */
-    public static WebhookClient withId(long id, @NotNull String token) {
-        Objects.requireNonNull(token, "Token");
-        ScheduledExecutorService pool = WebhookClientBuilder.getDefaultPool(id, null, false);
-        return new WebhookClient(id, token, true, new OkHttpClient(), pool, AllowedMentions.all());
-    }
-
-    /**
-     * Factory method to create a basic WebhookClient with the provided id and token.
-     *
-     * @param  url
-     *         The url for the webhook
-     *
-     * @throws java.lang.NullPointerException
-     *         If provided with null
-     * @throws java.lang.NumberFormatException
-     *         If no valid id is part o the url
-     *
-     * @return The WebhookClient for the provided url
-     */
-    public static WebhookClient withUrl(@NotNull String url) {
-        Objects.requireNonNull(url, "URL");
-        Matcher matcher = WebhookClientBuilder.WEBHOOK_PATTERN.matcher(url);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException("Failed to parse webhook URL");
-        }
-        return withId(Long.parseUnsignedLong(matcher.group(1)), matcher.group(2));
+    public static WebhookClient create(long channelId) {
+        ScheduledExecutorService pool = WebhookClientBuilder.getDefaultPool(channelId, null, false);
+        return new WebhookClient(channelId, true, new OkHttpClient(), pool, AllowedMentions.all());
     }
 
     /**
