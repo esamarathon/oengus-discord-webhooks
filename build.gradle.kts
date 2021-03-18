@@ -8,7 +8,7 @@ plugins {
 
 val major = "0"
 val minor = "6"
-val patch = "1"
+val patch = "2"
 
 group = "io.oengus"
 version = "$major.$minor.$patch"
@@ -28,7 +28,7 @@ repositories {
 val versions = mapOf(
     "slf4j" to "1.7.25",
     "okhttp" to "3.14.9",
-    "json" to "20180813",
+    "json" to "20210307",
     "junit" to "4.12",
     "mockito" to "3.6.28",
     "powermock" to "2.0.9",
